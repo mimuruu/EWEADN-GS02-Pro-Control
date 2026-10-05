@@ -1,0 +1,27 @@
+# ---- Build output ----
+build/
+dist/
+*.spec.bak
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+
+# ---- Aplikasi (hasil build / state runtime) ----
+# .exe dibagikan lewat GitHub Releases, bukan di dalam repo.
+GS02Pro-Control.exe
+gs02_settings.json
+*.log
+
+# ---- OS / editor ----
+Thumbs.db
+Desktop.ini
+.DS_Store
+.vscode/
+.idea/
+*.swp

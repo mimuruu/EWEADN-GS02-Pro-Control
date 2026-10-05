@@ -1,0 +1,7 @@
+/* Font lokal (opsional). Aplikasi tetap jalan memakai font sistem
+   (Segoe UI / Consolas) bila file font tidak tersedia. */
+/* @font-face {
+     font-family: "Inter";
+     src: url("Inter-Regular.woff2") format("woff2");
+     font-weight: 400;
+   } */

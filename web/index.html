@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EWEADN GS02 Pro Control Hub</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div id="app">
+    <header class="topbar" id="topbar"></header>
+    <div class="body">
+      <aside class="sidebar" id="sidebar"></aside>
+      <main class="main" id="main">
+        <div class="page-head" id="page-head"></div>
+        <div id="content"></div>
+      </main>
+    </div>
+    <footer class="bottombar" id="bottombar"></footer>
+  </div>
+  <!-- Pegangan resize (jendela borderless tanpa border native) -->
+  <div class="rz rz-t" data-edge="t"></div>
+  <div class="rz rz-b" data-edge="b"></div>
+  <div class="rz rz-l" data-edge="l"></div>
+  <div class="rz rz-r" data-edge="r"></div>
+  <div class="rz rz-tl" data-edge="tl"></div>
+  <div class="rz rz-tr" data-edge="tr"></div>
+  <div class="rz rz-bl" data-edge="bl"></div>
+  <div class="rz rz-br" data-edge="br"></div>
+
+  <div class="overlay" id="modal"></div>
+  <div class="toast-wrap" id="toasts"></div>
+  <script src="js/icons.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
