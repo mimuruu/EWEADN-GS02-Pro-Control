@@ -8,6 +8,13 @@ software resmi. Dibangun dengan Python + [pywebview](https://pywebview.flowrl.co
 > Menggantikan driver web resmi EWEADN dengan aplikasi desktop native yang
 > ringan, cepat, dan tanpa perlu koneksi internet.
 
+## ⬇️ Download
+
+**[Download GS02Pro-Control.exe (v3.0.0)](https://github.com/mimuruu/EWEADN-GS02-Pro-Control/releases/latest/download/GS02Pro-Control.exe)**
+— standalone, tidak perlu install Python. Butuh Windows 10/11 64-bit.
+
+Atau lihat semua versi di halaman [**Releases**](https://github.com/mimuruu/EWEADN-GS02-Pro-Control/releases).
+
 ---
 
 ## ✨ Fitur
