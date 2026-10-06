@@ -1,84 +1,84 @@
 # EWEADN GS02 Pro Control Hub
 
-Driver kontrol mouse gaming **EWEADN GS02 Pro** untuk Windows — offline, tanpa
-software resmi. Dibangun dengan Python + [pywebview](https://pywebview.flowrl.com/)
-(UI HTML/CSS/JS) dan berkomunikasi langsung dengan mouse lewat protokol HID
-**Report ID `0xF0`**.
+A Windows control panel / driver for the **EWEADN GS02 Pro** gaming mouse —
+fully offline, no official software required. Built with Python +
+[pywebview](https://pywebview.flowrl.com/) (HTML/CSS/JS UI) and talks to the
+mouse directly over the HID **Report ID `0xF0`** protocol.
 
-> Menggantikan driver web resmi EWEADN dengan aplikasi desktop native yang
-> ringan, cepat, dan tanpa perlu koneksi internet.
+> A native desktop replacement for EWEADN's web-based driver: lightweight, fast,
+> and needs no internet connection.
 
 ## ⬇️ Download
 
 **[Download GS02Pro-Control.exe (v3.0.0)](https://github.com/mimuruu/EWEADN-GS02-Pro-Control/releases/latest/download/GS02Pro-Control.exe)**
-— standalone, tidak perlu install Python. Butuh Windows 10/11 64-bit.
+— standalone, no Python install required. Requires 64-bit Windows 10/11.
 
-Atau lihat semua versi di halaman [**Releases**](https://github.com/mimuruu/EWEADN-GS02-Pro-Control/releases).
+See all versions on the [**Releases**](https://github.com/mimuruu/EWEADN-GS02-Pro-Control/releases) page.
 
 ---
 
-## ✨ Fitur
+## ✨ Features
 
-| Halaman | Fungsi |
+| Page | What it does |
 |---|---|
-| **DPI** | 6 stage sensitivitas (200 – 24.000 DPI), X/Y independent, lift-off distance |
-| **Key Remapping** | Ubah fungsi 5 tombol (kiri / kanan / tengah / 2 samping) |
+| **DPI** | 6 sensitivity stages (200 – 24,000 DPI), X/Y independent, lift-off distance |
+| **Key Remapping** | Remap all 5 buttons (left / right / middle / 2 side) |
 | **Performance** | Polling rate (125/250/500/1000 Hz), debounce, sleep light |
-| **Lampu** | 7 efek lampu bawaan |
-| **Makro** | Rekam & putar makro (hotkey global **F9** rekam, **F10** putar) |
-| **Fire Key** | Klik beruntun otomatis saat tombol pemicu ditahan |
+| **Lighting** | 7 built-in lighting effects |
+| **Macro** | Record & play macros (global hotkeys: **F9** record, **F10** play) |
+| **Fire Key** | Automatic rapid-clicking while the trigger button is held |
 
-- 🎨 UI tema gelap dengan aksen oranye (`#ff5019`), animasi fade yang halus.
-- 🪟 Jendela **borderless** — geser dari area judul, klik-ganda untuk maximize.
-- ⌨️ Hotkey **F9/F10 global**: bekerja walau jendela tidak difokuskan.
-- 🔋 Status baterai & firmware dibaca langsung dari perangkat.
-- 🖥️ Maximize memakai **work area** sehingga taskbar tetap terlihat.
+- 🎨 Dark UI with an orange accent (`#ff5019`) and smooth fade animations.
+- 🪟 **Borderless** window — drag from the title area, double-click to maximize.
+- ⌨️ **Global F9/F10 hotkeys** — work even when the window isn't focused.
+- 🔋 Battery and firmware status read straight from the device.
+- 🖥️ Maximize uses the **work area** so the taskbar stays visible.
 
 ---
 
-## 📋 Spesifikasi Perangkat (EWEADN GS02 Pro)
+## 📋 Device Specifications (EWEADN GS02 Pro)
 
 | | |
 |---|---|
 | Sensor | PixArt PAW3311 (optical gaming) |
-| DPI | 200 – 24.000 DPI |
-| Preset DPI | 400 / 800 / 1200 / 1600 / 2400 / 3200 |
-| Polling rate | 125 / 250 / 500 / 1000 Hz (receiver 1K) |
-| Kecepatan tracking | 300 IPS |
-| Akselerasi | 35 G |
-| Berat | 65 gram |
-| Dimensi | 118 × 67 × 41 mm |
-| Baterai | 3,7 V 500 mAh (NTC), hingga ~120 jam |
-| Switch L/R | Huano 20 juta klik |
-| Switch tengah/sisi | Huano 3 juta klik |
-| Encoder | FSWITCH 30.000 siklus |
-| Konektivitas | Tri-mode (Type-C / 2.4G / Bluetooth) |
-| Coating | Nano-Skin anti keringat |
-| Kaki (skates) | PTFE murni |
-| Driver resmi | <https://eweadn1.yjx2012.com/> |
+| DPI | 200 – 24,000 DPI |
+| DPI presets | 400 / 800 / 1200 / 1600 / 2400 / 3200 |
+| Polling rate | 125 / 250 / 500 / 1000 Hz (1K receiver) |
+| Tracking speed | 300 IPS |
+| Acceleration | 35 G |
+| Weight | 65 g |
+| Dimensions | 118 × 67 × 41 mm |
+| Battery | 3.7 V 500 mAh (NTC), up to ~120 h |
+| Main switches | Huano 20 million clicks |
+| Middle/side switches | Huano 3 million clicks |
+| Encoder | FSWITCH 30,000 cycles |
+| Connectivity | Tri-mode (Type-C / 2.4G / Bluetooth) |
+| Coating | Nano-Skin sweat-resistant |
+| Feet (skates) | Pure PTFE |
+| Official driver | <https://eweadn1.yjx2012.com/> |
 
 ---
 
-## 🚀 Cara Pakai
+## 🚀 Usage
 
-1. Sambungkan mouse lewat kabel Type-C atau dongle 2.4G.
-   *(Mode Bluetooth tidak didukung oleh protokol driver ini.)*
-2. Jalankan **`GS02Pro-Control.exe`** (atau `Jalankan.bat`).
-3. Atur lewat 6 halaman di atas.
-4. Klik **"Terapkan Semua"** untuk menyimpan ke memori mouse.
+1. Connect the mouse via Type-C cable or the 2.4G dongle.
+   *(Bluetooth mode is not supported by this driver's protocol.)*
+2. Run **`GS02Pro-Control.exe`** (or `Jalankan.bat`).
+3. Configure through the 6 pages listed above.
+4. Click **"Apply All"** to save to the mouse's memory.
 
 ---
 
-## 🛠️ Menjalankan dari Source
+## 🛠️ Run from Source
 
 ```bash
 pip install -r requirements.txt
 python main.py
 ```
 
-Butuh Python 3.10+ di Windows.
+Requires Python 3.10+ on Windows.
 
-### Build ulang `.exe`
+### Rebuild the `.exe`
 
 ```bash
 pip install pyinstaller
@@ -86,73 +86,74 @@ python -m PyInstaller --clean --noconfirm GS02Pro-Control.spec
 copy dist\GS02Pro-Control.exe .
 ```
 
-Log aplikasi: `%LOCALAPPDATA%\GS02Pro-Control\app.log`
+App log: `%LOCALAPPDATA%\GS02Pro-Control\app.log`
 
 ---
 
-## ⚠️ Catatan Penting
+## ⚠️ Important Notes
 
-- Hardware GS02 Pro hanya mengekspos **Report ID `0xF0`**, sehingga:
-  - **Makro tidak bisa disimpan di chip mouse** → dijalankan di PC (host-side).
-  - **Fire Key** juga dijalankan di PC.
-  - Selama aplikasi terbuka, makro & fire key tetap bekerja.
-- Mouse hanya punya **7 efek lampu bawaan** (tidak ada warna solid).
-- Jendela borderless: tombol minimize/maximize/close digambar di dalam UI,
-  geser jendela dengan menahan area judul.
-
----
-
-## ❓ Tanya-Jawab
-
-**T: Kenapa tombol samping saya jadi Volume +/−?**
-J: Itu default pabrik GS02 Pro. Kalau sebelumnya Anda mengubah lewat driver web
-resmi, perubahan itu tersimpan di memori mouse dan terbaca kembali oleh aplikasi
-ini. Ubah lagi di halaman **Key Remapping** (ada preset "Samping = Maju / Mundur"
-atau "Matikan Tombol Samping"), lalu **Terapkan Semua**.
-
-**T: Apakah status baterai akurat?**
-J: Ya. Aplikasi membaca register baterai langsung dari mouse (perintah `0x30`),
-sama seperti driver resmi EWEADN. Saat mengisi daya, angka bisa tertahan di 100%
-walau belum penuh; setelah dicabut akan turun sesuai pemakaian.
-
-**T: Bagaimana cara pakai Fire Key?**
-J: Buka halaman **Fire Key** → nyalakan sakelar → pilih Tombol Pemicu (mis.
-Samping X2) → atur Delay & Jumlah Klik → klik **Terapkan Fire Key**. Lalu **tahan**
-tombol pemicu: mouse otomatis klik kiri beruntun. Ada tombol **Tes Sekarang**
-untuk mencoba tanpa menyentuh mouse.
-
-**T: Kalau pakai mode kabel atau Bluetooth, driver ini jalan?**
-J: Mode **kabel** (VID `0xA8A4`) & **2.4G** (VID `0xA8A5`): ya. Mode **Bluetooth**:
-tidak, karena saat Bluetooth mouse tidak mengekspos interface vendor (`0xFF01`)
-yang dipakai driver. Untuk mengubah setting, pakai kabel atau dongle 2.4G.
-
-**T: Kalau teman saya pakai mouse berbeda, apakah tetap nyambung?**
-J: Untuk mouse EWEADN lain yang memakai protokol sama (VID `0xA8A4` / `0xA8A5`),
-kemungkinan besar ya. Untuk merek lain, tidak. Beberapa fitur khusus GS02 Pro
-(mis. jumlah efek lampu) bisa berbeda antar model.
-
-**T: Lampu mouse bisa diset satu warna solid saja?**
-J: Tidak bisa. GS02 Pro hanya punya 7 efek bawaan dan tidak menyimpan kode warna
-RGB di firmware-nya (hanya ada 1 byte mode, tanpa field warna). Untuk kesan satu
-warna statis, gunakan efek "Bernapas" atau "Kedip".
-
-**T: Mouse tidak terdeteksi / setting tidak berubah?**
-J: Pastikan kabel/dongle 2.4G terpasang lalu klik **Muat Ulang**. Setting hanya
-tersimpan setelah klik **Terapkan Semua**. Mouse "tidur" setelah 10 detik tanpa
-gerakan (normal) — gerakkan untuk bangun.
+- The GS02 Pro only exposes **Report ID `0xF0`**, which means:
+  - **Macros cannot be stored on the mouse chip** → they run on the PC (host-side).
+  - **Fire Key** also runs on the PC.
+  - Macros and Fire Key keep working as long as the app is open.
+- The mouse only has **7 built-in lighting effects** (no solid color support).
+- Borderless window: the minimize/maximize/close buttons are drawn inside the UI;
+  drag the window by holding the title area.
 
 ---
 
-## 🧱 Struktur Project
+## ❓ FAQ
+
+**Q: Why are my side buttons set to Volume +/−?**
+A: That's the GS02 Pro factory default. If you previously changed them in the
+official web driver, those settings are stored in the mouse's memory and read
+back by this app. Change them again on the **Key Remapping** page (there are
+"Side = Forward / Back" and "Disable Side Buttons" presets), then click
+**Apply All**.
+
+**Q: Is the battery reading accurate?**
+A: Yes. The app reads the battery register directly from the mouse (`0x30`
+command), the same way EWEADN's official driver does. While charging, the value
+may stay pinned at 100% even before it's full; it drops with usage once unplugged.
+
+**Q: How do I use Fire Key?**
+A: Open the **Fire Key** page → toggle it on → pick a Trigger Button (e.g. Side
+X2) → set Delay & Click Count → click **Apply Fire Key**. Then **hold** the
+trigger button: the mouse auto-clicks left repeatedly. There's a **Test Now**
+button to try it without touching the mouse.
+
+**Q: Does this driver work over cable or Bluetooth?**
+A: **Cable** (VID `0xA8A4`) & **2.4G** (VID `0xA8A5`): yes. **Bluetooth**: no,
+because in Bluetooth mode the mouse doesn't expose the vendor interface
+(`0xFF01`) this driver uses. Use a cable or the 2.4G dongle to change settings.
+
+**Q: If my friend uses a different mouse, will it still connect?**
+A: For other EWEADN mice using the same protocol (VID `0xA8A4` / `0xA8A5`),
+most likely yes. For other brands, no. Some GS02 Pro-specific features (e.g. the
+number of lighting effects) may differ between models.
+
+**Q: Can the lighting be set to a single solid color?**
+A: No. The GS02 Pro only has 7 built-in effects and doesn't store RGB color
+codes in its firmware (only a 1-byte mode, with no color field). For a near-static
+single-color look, use the "Breathing" or "Blink" effect.
+
+**Q: Mouse not detected / settings not saving?**
+A: Make sure the cable/2.4G dongle is connected, then click **Reload**. Settings
+are only saved after you click **Apply All**. The mouse "sleeps" after 10 seconds
+of inactivity (normal) — move it to wake it up.
+
+---
+
+## 🧱 Project Structure
 
 ```
 GS02Pro-Control/
-├── main.py                 # titik masuk aplikasi
+├── main.py                 # application entry point
 ├── backend/
-│   ├── hid.py              # protokol HID Report ID 0xF0
-│   ├── engine.py           # makro & fire key (input hook, lazy)
-│   ├── api.py              # jembatan JS <-> Python (pywebview)
-│   └── keycodes.py         # 173 pemetaan keycode
+│   ├── hid.py              # HID Report ID 0xF0 protocol
+│   ├── engine.py           # macro & fire key (input hook, lazy)
+│   ├── api.py              # JS <-> Python bridge (pywebview)
+│   └── keycodes.py         # 173 keycode mappings
 ├── web/                    # UI (HTML/CSS/JS)
 │   ├── index.html
 │   ├── css/app.css
@@ -160,33 +161,33 @@ GS02Pro-Control/
 │   ├── js/icons.js
 │   └── fonts/fonts.css
 ├── icon.ico
-├── GS02Pro-Control.spec    # konfigurasi PyInstaller
+├── GS02Pro-Control.spec    # PyInstaller configuration
 ├── Jalankan.bat            # launcher (exe / python)
 └── requirements.txt
 ```
 
 ---
 
-## 🔧 Teknis
+## 🔧 Technical Notes
 
-- **Protokol HID**: Report ID `0xF0`, payload 63 byte.
-  - Baca config: `[14,165,11,46,1,1,1,0,0]`
-  - Tulis config: `[15,174,10,47,...]`
-  - Baca baterai: `[48,165,11,46,1,1,1,0,0]` (perintah `0x30`)
-  - Baca tombol: `[8,165,11,44,0,0,0,0,0]`
-- **VID/PID**: `0xA8A4` (kabel) / `0xA8A5` (2.4G), PID `0x2255`,
+- **HID protocol**: Report ID `0xF0`, 63-byte payload.
+  - Read config: `[14,165,11,46,1,1,1,0,0]`
+  - Write config: `[15,174,10,47,...]`
+  - Read battery: `[48,165,11,46,1,1,1,0,0]` (`0x30` command)
+  - Read buttons: `[8,165,11,44,0,0,0,0,0]`
+- **VID/PID**: `0xA8A4` (cable) / `0xA8A5` (2.4G), PID `0x2255`,
   usage page `0xFF01`.
-- **Anti-hang**: semua atribut objek di kelas `Api` diberi awalan `_` agar
-  pywebview tidak memindai atribut publik secara rekursif
-  (`maximum recursion depth exceeded` → jendela "Not Responding").
-- **UI disajikan via HTTP lokal** (`http_server=True`) untuk menghindari
-  layar abu-abu pada WebView2.
+- **Anti-hang**: every object attribute on the `Api` class is prefixed with `_`
+  so pywebview doesn't recursively scan public attributes
+  (`maximum recursion depth exceeded` → "Not Responding" window).
+- **UI is served over local HTTP** (`http_server=True`) to avoid the WebView2
+  grey-screen issue.
 
 ---
 
-## 📄 Lisensi
+## 📄 License
 
-[MIT](LICENSE) — bebas dipakai, dimodifikasi, dan dibagikan.
+[MIT](LICENSE) — free to use, modify, and share.
 
-> Proyek tidak berafiliasi dengan EWEADN. Nama produk dipakai hanya untuk
-> menjelaskan kompatibilitas perangkat.
+> This project is not affiliated with EWEADN. The product name is used only to
+> describe hardware compatibility.
