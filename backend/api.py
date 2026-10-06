@@ -30,8 +30,11 @@ APP_VERSION = "3.0.0"
 
 # --- Kontrol jendela borderless (Win32) ---
 user32 = ctypes.windll.user32
+dwmapi = ctypes.windll.dwmapi
 WM_NCLBUTTONDOWN = 0x00A1
+WM_NCHITTEST = 0x0084
 HTCAPTION = 2
+HTCLIENT = 1
 SW_MINIMIZE = 6
 SW_MAXIMIZE = 3
 SW_RESTORE = 9
@@ -42,6 +45,16 @@ EDGE_CODES = {
     "l": HTLEFT, "r": HTRIGHT, "t": HTTOP, "b": HTBOTTOM,
     "tl": HTTOPLEFT, "tr": HTTOPRIGHT, "bl": HTBOTTOMLEFT, "br": HTBOTTOMRIGHT,
 }
+GWLP_WNDPROC = -4
+# Pesan untuk menghapus border non-client (WS_THICKFRAME) & tangani klik taskbar.
+WM_NCCALCSIZE = 0x0083
+WM_SYSCOMMAND = 0x0112
+SC_MINIMIZE = 0xF020
+SC_RESTORE = 0xF120
+# Tipe callback WndProc (64-bit aman).
+WNDPROC = ctypes.WINFUNCTYPE(ctypes.c_longlong, ctypes.wintypes.HWND,
+                             ctypes.c_uint, ctypes.c_ulonglong,
+                             ctypes.c_longlong)
 
 
 def base_dir():
@@ -120,7 +133,11 @@ class Api:
         """Dipanggil main.py setelah window dibuat (bukan atribut publik)."""
         self._window = window
 
-    # -------------------------------------------- kontrol jendela borderless
+    # ----------------------------------------------- kontrol jendela (native)
+    # Jendela memakai title bar NATIVE Windows (frameless=False), jadi drag,
+    # resize, Aero Snap, minimize/maximize/close, dan klik taskbar SEMUA
+    # ditangani Windows sendiri. Method di bawah hanya untuk tombol window
+    # custom di UI (opsional) dan cek status maximize.
     def _hwnd(self):
         try:
             h = self._window.native.Handle
@@ -128,128 +145,43 @@ class Api:
         except Exception:
             return None
 
-    def fix_window_style(self):
-        """Aktifkan perilaku taskbar pada jendela borderless.
-
-        Jendela frameless (FormBorderStyle.None) kehilangan WS_MINIMIZEBOX &
-        WS_SYSMENU. Tanpa keduanya, KLIK IKON DI TASKBAR tidak mengecilkan/
-        membesarkan jendela. Kita tambahkan bit-nya (tetap tanpa title bar).
-
-        PENTING: JANGAN tambahkan WS_THICKFRAME. Bit itu menambahkan "frame"
-        resize native yang memunculkan BINGKAI terang (~6px) di tepi jendela
-        (terlihat jelas saat maximize) walau tetap tanpa title bar. Klik taskbar
-        tetap bekerja tanpa THICKFRAME, jadi bit itu tidak diperlukan.
-        """
+    def win_minimize(self):
         try:
             hwnd = self._hwnd()
-            if not hwnd:
-                return {"ok": False, "message": "HWND tidak tersedia"}
-            GWL_STYLE = -16
-            WS_MINIMIZEBOX = 0x00020000
-            WS_MAXIMIZEBOX = 0x00010000
-            WS_SYSMENU = 0x00080000
-            WS_THICKFRAME = 0x00040000
-            SWP_FRAMECHANGED = 0x0020
-            SWP_NOMOVE = 0x0002
-            SWP_NOSIZE = 0x0001
-            SWP_NOZORDER = 0x0004
-            st = user32.GetWindowLongW(hwnd, GWL_STYLE)
-            new = (st | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU) & ~WS_THICKFRAME
-            if new != st:
-                user32.SetWindowLongW(hwnd, GWL_STYLE, new)
-                user32.SetWindowPos(hwnd, 0, 0, 0, 0, 0,
-                                    SWP_FRAMECHANGED | SWP_NOMOVE |
-                                    SWP_NOSIZE | SWP_NOZORDER)
+            if hwnd:
+                self._run_on_ui(lambda: user32.ShowWindow(hwnd, SW_MINIMIZE))
             return {"ok": True}
         except Exception as e:
             return {"ok": False, "message": str(e)}
 
-    def win_drag(self):
-        """Geser jendela secara MANUAL (ikuti kursor selama tombol ditahan).
-
-        Kenapa bukan WM_NCLBUTTONDOWN+HTCAPTION (native)? Di WebView2, saat
-        mousedown, WebView2 memegang capture dan UI thread diblokir sehingga
-        loop drag native tidak pernah mulai. Cara yang TERBUKTI bekerja:
-        pantau posisi kursor di thread Python dan pindahkan jendela dengan
-        SetWindowPos. Ringan (hanya saat drag) dan tetap mulus.
-        """
+    def win_toggle_maximize(self):
+        """Maximize/restore NATIVE (Windows urus ukuran & taskbar)."""
         try:
             hwnd = self._hwnd()
             if not hwnd:
                 return {"ok": False, "message": "HWND tidak tersedia"}
-            rc = ctypes.wintypes.RECT()
-            user32.GetWindowRect(hwnd, ctypes.byref(rc))
-
-            class PT(ctypes.Structure):
-                _fields_ = [("x", ctypes.c_long), ("y", ctypes.c_long)]
-
-            pt = PT()
-            user32.GetCursorPos(ctypes.byref(pt))
-            off_x, off_y = pt.x - rc.left, pt.y - rc.top
-            VK_LBUTTON = 0x01
-            SWP_NOSIZE, SWP_NOZORDER = 0x0001, 0x0004
-
-            def _loop():
-                p = PT()
-                while user32.GetAsyncKeyState(VK_LBUTTON) & 0x8000:
-                    if user32.GetCursorPos(ctypes.byref(p)):
-                        user32.SetWindowPos(hwnd, 0, p.x - off_x, p.y - off_y,
-                                            0, 0, SWP_NOSIZE | SWP_NOZORDER)
-                    time.sleep(0.008)
-
-            threading.Thread(target=_loop, daemon=True, name="win-drag").start()
-            return {"ok": True}
+            if user32.IsZoomed(hwnd):
+                self._run_on_ui(lambda: user32.ShowWindow(hwnd, SW_RESTORE))
+                return {"ok": True, "maximized": False}
+            self._run_on_ui(lambda: user32.ShowWindow(hwnd, SW_MAXIMIZE))
+            return {"ok": True, "maximized": True}
         except Exception as e:
             return {"ok": False, "message": str(e)}
 
-    def _log_dbg(self, msg):
+    def win_is_maximized(self):
+        """Status maximize SINKRON dengan Windows (termasuk Aero Snap Win+Up)."""
         try:
-            base = os.environ.get("LOCALAPPDATA") or os.path.expanduser("~")
-            p = os.path.join(base, "GS02Pro-Control", "app.log")
-            os.makedirs(os.path.dirname(p), exist_ok=True)
-            with open(p, "a", encoding="utf-8") as f:
-                f.write("%s  DBG %s\n" % (time.strftime("%H:%M:%S"), msg))
+            hwnd = self._hwnd()
+            return {"maximized": bool(hwnd and user32.IsZoomed(hwnd))}
         except Exception:
-            pass
+            return {"maximized": False}
 
-    def win_drag_manual(self):
-        """Drag manual (fallback): ikuti posisi kursor selama tombol ditahan.
-
-        Lebih lambat sedikit dari native tapi tidak bergantung timing/capture.
-        """
+    def win_close(self):
         try:
-            hwnd = self._hwnd()
-            if not hwnd:
-                return {"ok": False, "message": "HWND tidak tersedia"}
-            rc = ctypes.wintypes.RECT()
-            user32.GetWindowRect(hwnd, ctypes.byref(rc))
-
-            class PT(ctypes.Structure):
-                _fields_ = [("x", ctypes.c_long), ("y", ctypes.c_long)]
-
-            pt = PT()
-            user32.GetCursorPos(ctypes.byref(pt))
-            off_x, off_y = pt.x - rc.left, pt.y - rc.top
-            VK_LBUTTON = 0x01
-            while user32.GetAsyncKeyState(VK_LBUTTON) & 0x8000:
-                if user32.GetCursorPos(ctypes.byref(pt)):
-                    self._run_on_ui(lambda: user32.SetWindowPos(
-                        hwnd, 0, pt.x - off_x, pt.y - off_y, 0, 0,
-                        0x0001 | 0x0004))  # SWP_NOSIZE | SWP_NOZORDER
-                time.sleep(0.012)
+            self._window.destroy()
             return {"ok": True}
         except Exception as e:
             return {"ok": False, "message": str(e)}
-
-    def _log_dbg(self, msg):
-        try:
-            base = os.environ.get("LOCALAPPDATA") or os.path.expanduser("~")
-            p = os.path.join(base, "GS02Pro-Control", "app.log")
-            os.makedirs(os.path.dirname(p), exist_ok=True)
-            with open(p, "a", encoding="utf-8") as f:
-                f.write("%s  DBG %s\n" % (time.strftime("%H:%M:%S"), msg))
-        except Exception:
-            pass
 
     def _run_on_ui(self, fn):
         """Jalankan fn() di thread UI WinForms (kalau bisa), else langsung."""
@@ -263,102 +195,6 @@ class Api:
             form.BeginInvoke(Action(fn))
         except Exception:
             fn()
-
-    def win_minimize(self):
-        try:
-            hwnd = self._hwnd()
-            self._run_on_ui(lambda: user32.ShowWindow(hwnd, SW_MINIMIZE))
-            return {"ok": True}
-        except Exception as e:
-            return {"ok": False, "message": str(e)}
-
-    def _work_area(self, hwnd):
-        """Area kerja monitor (layar minus taskbar) tempat jendela berada."""
-        rc = ctypes.wintypes.RECT()
-        MONITOR_DEFAULTTONEAREST = 2
-        try:
-            hmon = user32.MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST)
-            class MONITORINFO(ctypes.Structure):
-                _fields_ = [("cbSize", ctypes.c_ulong),
-                            ("rcMonitor", ctypes.wintypes.RECT),
-                            ("rcWork", ctypes.wintypes.RECT),
-                            ("dwFlags", ctypes.c_ulong)]
-            mi = MONITORINFO()
-            mi.cbSize = ctypes.sizeof(MONITORINFO)
-            if user32.GetMonitorInfoW(hmon, ctypes.byref(mi)):
-                return mi.rcWork
-        except Exception:
-            pass
-        # fallback: SPI_GETWORKAREA
-        SPI_GETWORKAREA = 0x0030
-        if user32.SystemParametersInfoW(SPI_GETWORKAREA, 0, ctypes.byref(rc), 0):
-            return rc
-        return None
-
-    def win_toggle_maximize(self):
-        """Maximize ke AREA KERJA (bukan fullscreen) supaya taskbar tetap terlihat.
-
-        Borderless + SW_MAXIMIZE bisa menutupi taskbar; jadi kita atur sendiri
-        ukuran jendela = area kerja monitor (layar minus taskbar).
-        """
-        try:
-            hwnd = self._hwnd()
-            if not hwnd:
-                return {"ok": False, "message": "HWND tidak tersedia"}
-
-            if self._maximized:
-                # restore ke ukuran/posisi sebelumnya
-                r = self._restore_rect
-                if r:
-                    self._run_on_ui(lambda: user32.SetWindowPos(
-                        hwnd, 0, r[0], r[1], r[2] - r[0], r[3] - r[1],
-                        0x0004 | 0x0010))  # SWP_NOZORDER | SWP_NOACTIVATE
-                else:
-                    self._run_on_ui(lambda: user32.ShowWindow(hwnd, SW_RESTORE))
-                self._maximized = False
-                return {"ok": True, "maximized": False}
-
-            # simpan posisi sekarang untuk restore
-            rc = ctypes.wintypes.RECT()
-            user32.GetWindowRect(hwnd, ctypes.byref(rc))
-            self._restore_rect = (rc.left, rc.top, rc.right, rc.bottom)
-            wa = self._work_area(hwnd)
-            if wa is None:
-                self._run_on_ui(lambda: user32.ShowWindow(hwnd, SW_MAXIMIZE))
-            else:
-                self._run_on_ui(lambda: user32.SetWindowPos(
-                    hwnd, 0, wa.left, wa.top, wa.right - wa.left, wa.bottom - wa.top,
-                    0x0004 | 0x0010))
-            self._maximized = True
-            return {"ok": True, "maximized": True}
-        except Exception as e:
-            return {"ok": False, "message": str(e)}
-
-    def win_is_maximized(self):
-        return {"maximized": bool(self._maximized)}
-
-    def win_close(self):
-        try:
-            self._window.destroy()
-            return {"ok": True}
-        except Exception as e:
-            return {"ok": False, "message": str(e)}
-
-    def win_resize(self, edge):
-        """Mulai ubah ukuran jendela dari tepi/sudut (native Windows)."""
-        try:
-            code = EDGE_CODES.get(str(edge).lower())
-            if not code:
-                return {"ok": False, "message": "edge tidak dikenal"}
-            hwnd = self._hwnd()
-            if not hwnd:
-                return {"ok": False, "message": "HWND tidak tersedia"}
-            self._run_on_ui(lambda: (
-                user32.ReleaseCapture(),
-                user32.SendMessageW(hwnd, WM_NCLBUTTONDOWN, code, 0)))
-            return {"ok": True}
-        except Exception as e:
-            return {"ok": False, "message": str(e)}
 
     # --------------------------------------------------------- event ke UI
     def _emit(self, event, payload):
@@ -432,6 +268,17 @@ class Api:
     def app_info(self):
         return {"name": APP_NAME, "version": APP_VERSION,
                 "profile": self._profile_name}
+
+    def open_url(self, url):
+        """Buka URL di browser default (dipakai tombol 'Buka di GitHub')."""
+        try:
+            url = str(url)
+            if not (url.startswith("http://") or url.startswith("https://")):
+                return {"ok": False, "message": "URL tidak valid"}
+            os.startfile(url)
+            return {"ok": True}
+        except Exception as e:
+            return {"ok": False, "message": str(e)}
 
     def get_catalog(self):
         out = []

@@ -97,8 +97,15 @@ App log: `%LOCALAPPDATA%\GS02Pro-Control\app.log`
   - **Fire Key** also runs on the PC.
   - Macros and Fire Key keep working as long as the app is open.
 - The mouse only has **7 built-in lighting effects** (no solid color support).
-- Borderless window: the minimize/maximize/close buttons are drawn inside the UI;
-  drag the window by holding the title area.
+- **Borderless window** with a custom header, but it behaves **exactly like a
+  native window**: drag the title area (with **Aero Snap** to screen edges),
+  `Win` + arrow keys, resize from any edge, taskbar click, and maximize keeps the
+  taskbar visible. Achieved via Win32 style bits + DWM colouring + WebView2
+  `app-region` drag.
+- All UI animations are **simple, standard fade in / fade out** (no sliding or
+  scaling), consistent with typical desktop apps.
+- An **About** button in the top bar shows the version, author and license.
+- The app icon and in-app logo use the **EWEADN triangle mark**.
 
 ---
 

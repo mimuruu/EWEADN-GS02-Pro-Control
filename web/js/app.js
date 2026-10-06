@@ -90,77 +90,21 @@ const PAGES = [
 function renderTopbar() {
   const batt = state.battery == null ? "—" : state.battery + "%";
   const conn = state.connected;
-  const maxed = !!state.maximized;
   $("#topbar").innerHTML = `
-    <div class="brand win-drag">
-      <div class="logo">${icon("mouse")}</div>
+    <div class="brand">
+      <div class="logo"><img src="logo.png" alt="EWEADN" width="32" height="32"></div>
       <div class="brand-text">
         <div class="t1">EWEADN GS02 Pro</div>
         <div class="t2">Driver Kontrol Mouse Gaming Offline</div>
       </div>
     </div>
-    <div class="spacer win-drag"></div>
+    <div class="spacer"></div>
     <div class="statusbar-chips">
       <span class="chip ${conn ? "ok" : "err"}">${icon("wifi")}<span>${esc(conn ? state.mode : "Terputus")}</span></span>
       <span class="chip">${icon("battery")}<span>Baterai: <strong>${batt}</strong></span></span>
       <span class="chip"><span class="mono">FW: ${esc(state.firmware || "—")}</span></span>
-    </div>
-    <div class="win-controls">
-      <button class="winbtn" title="Minimize" onclick="winMinimize()">${icon("minus")}</button>
-      <button class="winbtn" title="${maxed ? "Restore" : "Maximize"}" onclick="winToggleMaximize()">${icon(maxed ? "restore" : "maximize")}</button>
-      <button class="winbtn close" title="Tutup" onclick="winClose()">${icon("x")}</button>
+      <button class="chip chip-btn" title="Tentang aplikasi" onclick="openAbout()">${icon("info")}<span>About</span></button>
     </div>`;
-  // Area drag: klik-tahan pada title bar buatan -> geser jendela (native).
-  // Pakai event delegation di document supaya tetap jalan walau topbar
-  // di-render ulang.
-  if (!window.__winDragBound) {
-    window.__winDragBound = true;
-    document.addEventListener("mousedown", (e) => {
-      if (e.button !== 0) return;
-      const zone = e.target.closest && e.target.closest("#topbar .win-drag");
-      if (!zone) return;
-      if (e.target.closest(".winbtn")) return;
-      try { API().win_drag(); } catch (_) { }
-    }, true);
-    document.addEventListener("dblclick", (e) => {
-      const zone = e.target.closest && e.target.closest("#topbar .win-drag");
-      if (!zone) return;
-      if (e.target.closest(".winbtn")) return;
-      winToggleMaximize();
-    }, true);
-  }
-}
-
-async function winMinimize() {
-  // fade out dulu, lalu minimize sungguhan
-  document.body.classList.add("win-minimizing");
-  setTimeout(async () => {
-    try { await API().win_minimize(); } catch (e) { }
-    setTimeout(() => document.body.classList.remove("win-minimizing"), 300);
-  }, 165);
-}
-async function winToggleMaximize() {
-  // fade in halus saat maximize/restore
-  document.body.classList.add("win-maximizing");
-  setTimeout(() => document.body.classList.remove("win-maximizing"), 190);
-  try {
-    const r = await API().win_toggle_maximize();
-    state.maximized = r && r.maximized;
-    renderTopbar();
-  } catch (e) { }
-}
-async function winClose() {
-  // fade out dulu, baru benar-benar tutup
-  document.body.classList.add("win-closing");
-  setTimeout(async () => {
-    try { await API().win_close(); } catch (e) { }
-  }, 160);
-}
-async function syncMaxState() {
-  try {
-    const r = await API().win_is_maximized();
-    if (r && r.maximized !== state.maximized) { state.maximized = r.maximized; renderTopbar(); }
-  } catch (e) { }
 }
 
 function renderSidebar() {
@@ -458,6 +402,61 @@ function applyKeyPick(idx) {
   closeModal(); renderPage();
 }
 function closeModal() { $("#modal").className = "overlay"; $("#modal").innerHTML = ""; }
+
+/* --------------------------------------------------- TENTANG / ABOUT / KREDIT */
+function openAbout() {
+  const el = $("#modal");
+  el.className = "overlay show";
+  const ver = state.appVersion || "3.0.0";
+  el.innerHTML = `
+    <div class="modal" style="width:520px">
+      <div class="modal-head">
+        <div class="ci" style="width:30px;height:30px;border-radius:6px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent)">${icon("info")}</div>
+        <div class="h">Tentang Aplikasi</div>
+        <span class="x" onclick="closeModal()">${icon("x")}</span>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+          <img src="logo_128.png" alt="EWEADN" width="56" height="56" style="border-radius:14px">
+          <div>
+            <div style="font-size:17px;font-weight:700;color:var(--fg)">EWEADN GS02 Pro Control Hub</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:3px">Versi ${esc(ver)} &middot; Driver kontrol mouse gaming offline</div>
+          </div>
+        </div>
+
+        <div class="hint" style="margin-bottom:14px">
+          ${icon("info")}
+          <div>Aplikasi desktop untuk mengatur mouse <strong>EWEADN GS02 Pro</strong> tanpa
+          software resmi. Berkomunikasi langsung lewat protokol HID
+          <span class="mono">Report ID 0xF0</span>.</div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="spec-grid">
+          <div class="sg"><div class="l">Dibuat oleh</div><div class="v accent">mimuruu</div></div>
+          <div class="sg"><div class="l">Lisensi</div><div class="v">MIT</div></div>
+          <div class="sg"><div class="l">Repository</div><div class="v mono" style="font-size:11px">github.com/mimuruu/EWEADN-GS02-Pro-Control</div></div>
+          <div class="sg"><div class="l">Teknologi</div><div class="v">Python &middot; pywebview &middot; hidapi</div></div>
+        </div>
+
+        <div class="divider"></div>
+        <div style="font-size:11px;color:var(--faint);line-height:1.6">
+          Proyek ini tidak berafiliasi dengan EWEADN. Nama produk dipakai hanya
+          untuk menjelaskan kompatibilitas perangkat.<br>
+          &copy; 2026 mimuruu &middot; Dirilis di bawah Lisensi MIT.
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn ghost" onclick="openAboutLink()">${icon("arrowRight")}Buka di GitHub</button>
+        <button class="btn primary" onclick="closeModal()">${icon("check")}Tutup</button>
+      </div>
+    </div>`;
+}
+
+function openAboutLink() {
+  try { window.pywebview.api.open_url("https://github.com/mimuruu/EWEADN-GS02-Pro-Control"); }
+  catch (e) { }
+}
 
 /* Preset cepat untuk 2 tombol samping.
    Urutan slot firmware: 3 = sisi depan (atas), 4 = sisi belakang (bawah). */
@@ -879,9 +878,6 @@ async function pollEngine() {
     const r = await API().poll_events();
     if (!r) return;
     (r.events || []).forEach(handleEngineEvent);
-    // Sinkronkan ikon maximize/restore (mis. saat jendela di-maximize via
-    // double-click title bar atau Aero Snap).
-    if (_pollTick % 3 === 0) syncMaxState();
     _pollTick++;
     // Saat merekam, ambil snapshot daftar aksi supaya tampil live.
     // Start/stop rekaman ditangani oleh event dari Python (record-started /
@@ -960,25 +956,12 @@ function boot() {
     ];
     renderAll();
     setStatus("Menghubungkan ke mouse...");
-    bindResizeHandles();
     state.ready = true;
     _schedulePoll();
   } catch (e) {
     try { API().ui_heartbeat({ error: "boot:" + String(e) }); } catch (_) { }
   }
   waitApi(0);
-}
-
-/* Pasang pegangan resize (jendela borderless tak punya border native). */
-function bindResizeHandles() {
-  $$(".rz").forEach(el => {
-    el.addEventListener("mousedown", (e) => {
-      if (e.button !== 0) return;
-      e.preventDefault();
-      const edge = el.getAttribute("data-edge");
-      try { API().win_resize(edge); } catch (_) { }
-    });
-  });
 }
 
 function apiReady() {
@@ -1003,6 +986,10 @@ async function loadLive() {
   ]);
   try { const c = await call("get_constants"); if (c) state.constants = c; } catch (e) { }
   try { const c = await call("get_catalog"); if (c) state.catalog = c; } catch (e) { }
+  try {
+    const ai = await call("app_info");
+    if (ai) { state.appName = ai.name; state.appVersion = ai.version; }
+  } catch (e) { }
   try { const s = await call("connect"); applyState(s); } catch (e) { }
   try { const l = await call("macro_lib_list"); if (l) state.macroLib = l; } catch (e) { }
   try {

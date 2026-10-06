@@ -4,8 +4,9 @@
 Aplikasi desktop untuk mengatur mouse EWEADN GS02 Pro (tanpa software resmi).
 
 Arsitektur:
-  main.py            - titik masuk; jendela BORDERLESS (frameless) dengan
-                       kontrol minimize/maximize/close di dalam UI.
+  main.py            - titik masuk; jendela NATIVE (frameless=False) sehingga
+                       Windows mengurus title bar, drag, resize, Aero Snap,
+                       minimize/maximize/close, dan klik taskbar sendiri.
   backend/hid.py     - protokol HID Report ID 0xF0
   backend/engine.py  - makro & fire key (hook input, lazy)
   backend/api.py     - jembatan JS <-> Python (dipanggil pywebview di thread
@@ -96,35 +97,17 @@ def main():
         resource_path("web", "index.html"),
         js_api=api,
         width=1120, height=840,
-        min_size=(960, 680),
+        min_size=(960, 640),
         background_color="#0d131f",
-        # Jendela BORDERLESS (frameless): tanpa title bar native. Judul +
-        # tombol minimize/maximize/close digambar sendiri di dalam UI (HTML),
-        # dan GESER jendela memakai WM_NCLBUTTONDOWN+HTCAPTION (native Windows,
-        # tetap mulus + ada Aero Snap). easy_drag DIMATIKAN karena itu memanggil
-        # Python tiap gerakan mouse -> lag/"Not Responding".
-        frameless=True,
+        # Jendela NATIVE (frameless=False): Windows mengurus title bar, drag,
+        # resize, Aero Snap, minimize/maximize/close, dan klik taskbar sendiri —
+        # paling stabil, tanpa hack Win32. Tombol window custom di UI
+        # disembunyikan (lihat app.css/js) karena sudah ada title bar native.
+        frameless=False,
         easy_drag=False,
     )
     api.set_window(window)
     window.events.closed += lambda: api.shutdown()
-
-    def _apply_taskbar_style():
-        # Tambahkan WS_MINIMIZEBOX/WS_SYSMENU supaya klik ikon di TASKBAR
-        # bisa mengecilkan/membesarkan jendela (frameless kehilangan bit ini).
-        import threading
-        def _run():
-            import time as _t
-            for _ in range(8):
-                _t.sleep(0.4)
-                if api._hwnd():
-                    r = api.fix_window_style()
-                    log("fix_window_style: %r" % (r,))
-                    return
-        threading.Thread(target=_run, daemon=True).start()
-
-    window.events.shown += _apply_taskbar_style
-    window.events.loaded += _apply_taskbar_style
 
     try:
         webview.start(debug=False, private_mode=True, http_server=True)

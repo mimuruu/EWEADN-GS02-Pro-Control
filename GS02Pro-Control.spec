@@ -20,6 +20,8 @@ datas = [
     ("web/js/icons.js", "web/js"),
     ("web/fonts/fonts.css", "web/fonts"),
     ("web/favicon.png", "web"),
+    ("web/logo.png", "web"),
+    ("web/logo_128.png", "web"),
     ("icon.ico", "."),
 ]
 

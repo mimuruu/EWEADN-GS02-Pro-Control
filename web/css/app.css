@@ -64,25 +64,26 @@ html, body {
 #app { display: flex; flex-direction: column; height: 100vh; }
 
 /* ---------------------------------------------------------------- TOP BAR */
-/* Jendela BORDERLESS: judul + tombol minimize/maximize/close digambar di sini.
-   Area .win-drag = pegangan geser jendela (memanggil win_drag -> HTCAPTION). */
+/* Jendela NATIVE: title bar + tombol minimize/maximize/close disediakan
+   Windows. Topbar ini hanya header aplikasi (logo, status, About). */
 .topbar {
   height: 58px;
   flex: 0 0 58px;
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 0 0 0 18px;
+  padding: 0 18px;
   background: var(--surface-lowest);
   border-bottom: 1px solid var(--border);
 }
-.topbar .win-drag { cursor: default; }
 .topbar .brand { display: flex; align-items: center; gap: 11px; }
 .logo {
   width: 32px; height: 32px;
   display: grid; place-items: center;
   color: var(--accent);
+  border-radius: 8px; overflow: hidden;
 }
+.logo img { width: 32px; height: 32px; display: block; }
 .brand-text .t1 { font-size: 14px; font-weight: 700; color: var(--fg); letter-spacing: -0.01em; }
 .brand-text .t2 { font-size: 10.5px; color: var(--muted); margin-top: 1px; }
 .topbar .spacer { flex: 1; }
@@ -102,6 +103,13 @@ html, body {
 .chip.err .dot { background: var(--err); box-shadow: 0 0 8px var(--err); }
 .chip svg { width: 14px; height: 14px; }
 .chip strong { color: var(--fg); font-weight: 600; }
+/* Tombol About di topbar (bentuk chip, bisa diklik) */
+.chip-btn {
+  cursor: pointer; font-family: var(--font); font-size: 11px;
+  transition: background .12s, border-color .12s, color .12s;
+}
+.chip-btn:hover { background: var(--surface-high); border-color: var(--accent); color: var(--fg); }
+.chip-btn svg { color: var(--accent); }
 
 /* ------------------------------------------------------------------- BODY */
 .body { flex: 1; display: flex; min-height: 0; }
@@ -234,12 +242,12 @@ html, body {
   height: 34px; padding: 0 14px; border-radius: var(--radius-sm);
   border: 1px solid var(--border); background: transparent;
   color: var(--fg); font-family: var(--font); font-size: 12px; font-weight: 600;
-  cursor: pointer; transition: background .12s, border-color .12s, color .12s, transform .05s;
+  cursor: pointer; transition: background .12s, border-color .12s, color .12s, opacity .1s;
   white-space: nowrap;
 }
 .btn svg { width: 15px; height: 15px; }
 .btn:hover { background: var(--card-hi); border-color: var(--border); }
-.btn:active { transform: translateY(1px); }
+.btn:active { opacity: .8; }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
 .btn.primary:hover { background: var(--accent-hi); border-color: var(--accent-hi); }
 .btn.ghost:hover { background: var(--card-hi); }
@@ -464,13 +472,14 @@ input[type="range"].slider::-webkit-slider-thumb {
   box-shadow: 0 8px 30px rgba(0,0,0,.4); animation: slidein .2s ease;
   min-width: 240px;
 }
+/* Toast: fade murni */
+.toast { animation: fadeIn .22s ease both; }
 .toast.ok { border-left-color: var(--ok); }
 .toast.err { border-left-color: var(--err); }
 .toast svg { width: 16px; height: 16px; }
 .toast.ok svg { color: var(--ok); }
 .toast.err svg { color: var(--err); }
 .toast svg { color: var(--accent); }
-@keyframes slidein { from { transform: translateX(30px); opacity: 0; } to { transform: none; opacity: 1; } }
 
 .spec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; }
 .spec-grid .sg .l { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--faint); font-family: var(--mono); }
@@ -488,33 +497,9 @@ input[type="range"].slider::-webkit-slider-thumb {
 
 .hidden { display: none !important; }
 
-/* ============================ JENDELA BORDERLESS ========================== */
-/* Tombol minimize / maximize-restore / close (digambar sendiri) */
-.win-controls { display: flex; align-items: stretch; height: 58px; margin-left: 4px; }
-.winbtn {
-  width: 46px; height: 58px; border: none; background: transparent;
-  color: var(--muted); cursor: pointer; display: grid; place-items: center;
-  transition: background .15s ease, color .15s ease, transform .12s ease;
-}
-.winbtn svg { width: 15px; height: 15px; transition: transform .2s ease; }
-.winbtn:hover { background: var(--surface-high); color: var(--fg); }
-.winbtn:active { transform: scale(.9); }
-.winbtn.close:hover { background: #c42b1c; color: #fff; }
-
-/* Pegangan ubah-ukuran di tepi & sudut jendela (frameless tak punya border) */
-.rz { position: fixed; z-index: 9999; }
-.rz-t  { top: 0; left: 8px; right: 8px; height: 5px; cursor: ns-resize; }
-.rz-b  { bottom: 0; left: 8px; right: 8px; height: 5px; cursor: ns-resize; }
-.rz-l  { left: 0; top: 8px; bottom: 8px; width: 5px; cursor: ew-resize; }
-.rz-r  { right: 0; top: 8px; bottom: 8px; width: 5px; cursor: ew-resize; }
-.rz-tl { top: 0; left: 0; width: 12px; height: 12px; cursor: nwse-resize; }
-.rz-tr { top: 0; right: 0; width: 12px; height: 12px; cursor: nesw-resize; }
-.rz-bl { bottom: 0; left: 0; width: 12px; height: 12px; cursor: nesw-resize; }
-.rz-br { bottom: 0; right: 0; width: 12px; height: 12px; cursor: nwse-resize; }
-
 /* ================================ ANIMASI ================================= */
-/* Fade murni: hanya opacity (transparan -> jelas). Tanpa transform/gerakan
-   supaya simpel, halus, dan tidak "mental". */
+/* Standar aplikasi desktop: transisi singkat, seragam, hanya opacity
+   (fade in / fade out), tanpa gerakan. */
 @keyframes fadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
@@ -524,30 +509,16 @@ input[type="range"].slider::-webkit-slider-thumb {
   to   { opacity: 0; }
 }
 
-/* Ganti tab: seluruh area konten + judul fade in lembut, anak-anak menyusul
-   (stagger halus, tetap hanya opacity). */
-#content.anim-page { animation: fadeIn .22s ease both; }
-#page-head.anim-head { animation: fadeIn .24s ease both; }
-#content.anim-page > * { animation: fadeIn .28s ease both; }
-#content.anim-page > *:nth-child(1) { animation-delay: 0s; }
-#content.anim-page > *:nth-child(2) { animation-delay: .04s; }
-#content.anim-page > *:nth-child(3) { animation-delay: .08s; }
-#content.anim-page > *:nth-child(4) { animation-delay: .12s; }
+/* Ganti tab/halaman: fade singkat pada area konten + judul. */
+#content.anim-page { animation: fadeIn .16s ease both; }
+#page-head.anim-head { animation: fadeIn .16s ease both; }
 
-/* Nav item aktif: sorotan halus */
-.nav-item.active { transition: background .16s ease, color .16s ease; }
+/* Modal & overlay */
+.overlay.show { animation: fadeIn .14s ease both; }
+.overlay.show .modal { animation: fadeIn .16s ease both; }
 
-/* Overlay modal: fade murni */
-.overlay.show { animation: fadeIn .18s ease both; }
-.overlay.show .modal { animation: fadeIn .22s ease both; }
-
-/* Toast: fade murni */
-.toast { animation: fadeIn .22s ease both; }
-
-/* Animasi jendela: fade murni (close / minimize / maximize) */
-body.win-closing #app { animation: fadeOut .16s ease forwards; }
-body.win-minimizing #app { animation: fadeOut .16s ease forwards; }
-body.win-maximizing #app { animation: fadeIn .18s ease; }
+/* Toast */
+.toast { animation: fadeIn .16s ease both; }
 
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
