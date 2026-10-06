@@ -26,7 +26,11 @@ from . import engine as engine_mod
 from .keycodes import KEYCODES, GROUP_ORDER
 
 APP_NAME = "EWEADN GS02 Pro Control Hub"
-APP_VERSION = "3.0.0"
+APP_VERSION = "3.1.0"
+# Repo GitHub untuk cek pembaruan (lihat Api.check_update).
+GITHUB_REPO = "mimuruu/EWEADN-GS02-Pro-Control"
+GITHUB_RELEASES_URL = "https://github.com/%s/releases" % GITHUB_REPO
+UPDATE_API_URL = "https://api.github.com/repos/%s/releases/latest" % GITHUB_REPO
 
 # --- Kontrol jendela borderless (Win32) ---
 user32 = ctypes.windll.user32
@@ -55,6 +59,21 @@ SC_RESTORE = 0xF120
 WNDPROC = ctypes.WINFUNCTYPE(ctypes.c_longlong, ctypes.wintypes.HWND,
                              ctypes.c_uint, ctypes.c_ulonglong,
                              ctypes.c_longlong)
+
+
+def _ver_tuple(v):
+    """Ubah 'v3.1.0' / '3.1.0' -> (3,1,0) untuk membandingkan versi."""
+    s = str(v).strip().lstrip("vV")
+    out = []
+    for part in s.split("."):
+        num = ""
+        for ch in part:
+            if ch.isdigit():
+                num += ch
+            else:
+                break
+        out.append(int(num) if num else 0)
+    return tuple(out) or (0,)
 
 
 def base_dir():
@@ -268,6 +287,38 @@ class Api:
     def app_info(self):
         return {"name": APP_NAME, "version": APP_VERSION,
                 "profile": self._profile_name}
+
+    def check_update(self):
+        """Cek versi terbaru di GitHub Releases (READ-ONLY, tanpa unduh/install).
+
+        Aman dari sudut antivirus: hanya SATU permintaan HTTPS ke GitHub API
+        dan TIDAK mengunduh/menjalankan apa pun — aplikasi hanya menampilkan
+        notifikasi bila ada versi lebih baru. Pembaruan tetap diunduh & dipasang
+        manual oleh pengguna (transparan).
+        """
+        result = {"ok": False, "current": APP_VERSION, "latest": None,
+                  "update_available": False, "url": GITHUB_RELEASES_URL,
+                  "name": None, "published": None}
+        try:
+            import urllib.request
+            req = urllib.request.Request(
+                UPDATE_API_URL,
+                headers={"User-Agent": "EWEADN-GS02-Pro-Control/%s" % APP_VERSION,
+                         "Accept": "application/vnd.github+json"})
+            with urllib.request.urlopen(req, timeout=6) as resp:
+                data = json.loads(resp.read().decode("utf-8", "replace"))
+            tag = str(data.get("tag_name") or "").strip()
+            latest = tag.lstrip("vV")
+            result["latest"] = latest or None
+            result["name"] = data.get("name") or tag or None
+            result["published"] = data.get("published_at") or None
+            result["url"] = data.get("html_url") or GITHUB_RELEASES_URL
+            result["ok"] = True
+            result["update_available"] = bool(
+                latest and _ver_tuple(latest) > _ver_tuple(APP_VERSION))
+        except Exception as e:
+            result["message"] = str(e)
+        return result
 
     def open_url(self, url):
         """Buka URL di browser default (dipakai tombol 'Buka di GitHub')."""

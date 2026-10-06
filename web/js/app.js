@@ -407,7 +407,7 @@ function closeModal() { $("#modal").className = "overlay"; $("#modal").innerHTML
 function openAbout() {
   const el = $("#modal");
   el.className = "overlay show";
-  const ver = state.appVersion || "3.0.0";
+  const ver = state.appVersion || "3.1.0";
   el.innerHTML = `
     <div class="modal" style="width:520px">
       <div class="modal-head">
@@ -448,6 +448,7 @@ function openAbout() {
       </div>
       <div class="modal-foot">
         <button class="btn ghost" onclick="openAboutLink()">${icon("arrowRight")}Buka di GitHub</button>
+        <button class="btn ghost" onclick="checkUpdate(true)">${icon("refresh")}Cek Update</button>
         <button class="btn primary" onclick="closeModal()">${icon("check")}Tutup</button>
       </div>
     </div>`;
@@ -1004,6 +1005,63 @@ async function loadLive() {
       firmware: state.firmware, w: window.innerWidth, h: window.innerHeight,
     });
   } catch (e) { }
+  // Cek pembaruan di latar belakang (tidak memblokir UI, gagal = diam saja).
+  checkUpdate(false);
+}
+
+/* ------------------------------------------------------ CEK PEMBARUAN
+   Tipe "check-only": hanya menanyakan versi terbaru ke GitHub, lalu
+   menampilkan banner. Tidak mengunduh / memasang apa pun secara otomatis —
+   pengguna membuka halaman rilis dan memasang sendiri (transparan). */
+let _updateInfo = null;
+async function checkUpdate(manual) {
+  if (manual) setStatus("Mengecek pembaruan...");
+  try {
+    const r = await Promise.race([
+      window.pywebview.api.check_update(),
+      new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 9000)),
+    ]);
+    _updateInfo = r;
+    if (!r || !r.ok) {
+      if (manual) setStatus("Tidak bisa mengecek pembaruan (offline?)", "err");
+      return;
+    }
+    if (r.update_available) {
+      renderUpdateBanner(r);
+      if (manual) setStatus("Pembaruan tersedia: v" + r.latest, "");
+    } else if (manual) {
+      setStatus("Aplikasi sudah versi terbaru (v" + (r.current || "") + ")", "");
+      toast("Aplikasi sudah versi paling baru.");
+    }
+  } catch (e) {
+    if (manual) setStatus("Gagal mengecek pembaruan", "err");
+  }
+}
+
+function renderUpdateBanner(info) {
+  const el = $("#update-banner");
+  if (!el) return;
+  el.className = "update-banner";
+  el.innerHTML = `
+    <div class="ub-ic">${icon("arrowRight")}</div>
+    <div class="ub-txt">Pembaruan tersedia: <b>v${esc(info.latest)}</b>
+      &middot; kamu memakai v${esc(info.current)}</div>
+    <div class="ub-actions">
+      <button class="ub-btn primary" onclick="openUpdatePage()">Unduh Pembaruan</button>
+      <button class="ub-btn" onclick="dismissUpdate()">Nanti</button>
+    </div>
+    <button class="ub-close" title="Tutup" onclick="dismissUpdate()">${icon("x")}</button>`;
+}
+
+function openUpdatePage() {
+  const url = (_updateInfo && _updateInfo.url) ||
+    "https://github.com/mimuruu/EWEADN-GS02-Pro-Control/releases";
+  try { window.pywebview.api.open_url(url); } catch (e) { }
+}
+
+function dismissUpdate() {
+  const el = $("#update-banner");
+  if (el) { el.className = "update-banner hidden"; el.innerHTML = ""; }
 }
 
 window.addEventListener("pywebviewready", boot);
