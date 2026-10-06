@@ -97,11 +97,9 @@ App log: `%LOCALAPPDATA%\GS02Pro-Control\app.log`
   - **Fire Key** also runs on the PC.
   - Macros and Fire Key keep working as long as the app is open.
 - The mouse only has **7 built-in lighting effects** (no solid color support).
-- **Borderless window** with a custom header, but it behaves **exactly like a
-  native window**: drag the title area (with **Aero Snap** to screen edges),
-  `Win` + arrow keys, resize from any edge, taskbar click, and maximize keeps the
-  taskbar visible. Achieved via Win32 style bits + DWM colouring + WebView2
-  `app-region` drag.
+- The app uses a **native Windows window** (title bar, minimize / maximize /
+  close, drag, resize, Aero Snap, taskbar click) — everything is handled by
+  Windows, so it behaves like any normal desktop app.
 - All UI animations are **simple, standard fade in / fade out** (no sliding or
   scaling), consistent with typical desktop apps.
 - An **About** button in the top bar shows the version, author and license.
@@ -149,6 +147,35 @@ A: Make sure the cable/2.4G dongle is connected, then click **Reload**. Settings
 are only saved after you click **Apply All**. The mouse "sleeps" after 10 seconds
 of inactivity (normal) — move it to wake it up.
 
+**Q: Windows Defender / antivirus flags the .exe as a virus — is it safe?**
+A: **Yes, it's a false positive.** The app is open source — you can read every
+line in this repo and even build the `.exe` yourself. It gets flagged because:
+
+1. The app legitimately uses a **global keyboard hook** (`SetWindowsHookEx`) and
+   **`SendInput`** to implement **Macros** and **Fire Key**. That combination is
+   the same pattern keyloggers use, so heuristic scanners flag it — even though
+   here it only replays *your own* recorded macros.
+2. The `.exe` is **not code-signed** (a certificate costs money), so Windows
+   SmartScreen shows "Windows protected your PC" for any new unsigned download.
+3. PyInstaller bootloaders are common in both legitimate apps and malware, so
+   they start with low reputation until many people download the file.
+
+**How to run it anyway:**
+- If SmartScreen shows *"Windows protected your PC"* → click **More info** →
+  **Run anyway**.
+- If Defender quarantines it → **Windows Security → Protection history** → find
+  the item → **Actions → Allow on device** (or **Restore**).
+- **Verify the file first:** compare the SHA-256 of your download with the value
+  published in the release notes:
+  ```powershell
+  Get-FileHash .\GS02Pro-Control.exe -Algorithm SHA256
+  ```
+
+**Report the false positive to Microsoft** (helps everyone, takes ~2 minutes):
+1. Go to <https://www.microsoft.com/en-us/wdsi/filesubmission>.
+2. Choose **"Software developer"** → **"Incorrectly detected as malware"**.
+3. Upload `GS02Pro-Control.exe` (or paste its SHA-256) and submit.
+
 ---
 
 ## 🧱 Project Structure
@@ -168,6 +195,7 @@ GS02Pro-Control/
 │   ├── js/icons.js
 │   └── fonts/fonts.css
 ├── icon.ico
+├── version_info.txt        # EXE version metadata (ProductName, version, ...)
 ├── GS02Pro-Control.spec    # PyInstaller configuration
 ├── Jalankan.bat            # launcher (exe / python)
 └── requirements.txt
