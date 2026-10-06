@@ -293,16 +293,25 @@ function countStep(d) { state.editCount = Math.max(1, Math.min(6, state.editCoun
 /* -------------------------------------------------------------- REMAP page */
 function pageRemap() {
   const labels = state.constants.button_labels || [];
-  const rows = state.editKeys.map((k, i) => `
+  // Urutan TAMPILAN (dari depan ke belakang): Kiri, Kanan, Tengah, lalu
+  // tombol samping DEPAN (baris 4) dan BELAKANG (baris 5).
+  // Indeks internal tetap mengikuti slot firmware:
+  //   index 3 = slot 4 = samping BELAKANG
+  //   index 4 = slot 5 = samping DEPAN
+  const order = [0, 1, 2, 4, 3];
+  const rows = order.map((idx, pos) => {
+    const k = state.editKeys[idx] || { group: "", label: "" };
+    return `
     <div class="key-row">
-      <div class="knum">${i + 1}</div>
+      <div class="knum">${pos + 1}</div>
       <div class="kinfo">
-        <div class="kn">${esc(labels[i] || ("Tombol " + (i + 1)))}</div>
+        <div class="kn">${esc(labels[idx] || ("Tombol " + (pos + 1)))}</div>
         <div class="kd">[${esc(k.group)}] ${esc(k.label)}</div>
       </div>
-      <button class="btn ghost sm" onclick="openKeyPicker(${i})">${icon("edit")}Ubah</button>
-    </div>`).join("");
-  const sideDefault = state.editKeys[3] && state.editKeys[3].group === "Media";
+      <button class="btn ghost sm" onclick="openKeyPicker(${idx})">${icon("edit")}Ubah</button>
+    </div>`;
+  }).join("");
+  const sideDefault = state.editKeys[4] && state.editKeys[4].group === "Media";
   return `
   <div class="grid cols-2">
     <div class="card">
@@ -337,7 +346,7 @@ function pageRemap() {
           <span>1 Kiri</span><span>2 Kanan</span><span>3 Tengah</span>
         </div>
         <div class="flex gap8" style="justify-content:space-between;font-size:10.5px;color:var(--muted);font-family:var(--mono);margin-top:4px">
-          <span>4 Samping Atas</span><span>5 Samping Bawah</span>
+          <span>4 Samping Atas (Depan)</span><span>5 Samping Bawah (Belakang)</span>
         </div>
       </div>
       <div class="card">
@@ -460,16 +469,18 @@ function openAboutLink() {
 }
 
 /* Preset cepat untuk 2 tombol samping.
-   Urutan slot firmware: 3 = sisi depan (atas), 4 = sisi belakang (bawah). */
+   Urutan slot firmware: index 3 (slot 4) = sisi BELAKANG (bawah),
+   index 4 (slot 5) = sisi DEPAN (atas). Dibuktikan dengan membaca tombol
+   dari perangkat: slot 5 = tombol paling depan. */
 function presetSideButtons() {
-  state.editKeys[3] = { raw: [32, 16, 0, 0], label: "Maju (Forward)", group: "Mouse" };
-  state.editKeys[4] = { raw: [32, 8, 0, 0], label: "Mundur (Backward)", group: "Mouse" };
+  state.editKeys[3] = { raw: [32, 8, 0, 0], label: "Mundur (Backward)", group: "Mouse" };
+  state.editKeys[4] = { raw: [32, 16, 0, 0], label: "Maju (Forward)", group: "Mouse" };
   renderPage();
   toast("Tombol samping diset Maju / Mundur — klik Terapkan Semua");
 }
 function presetSideVolume() {
-  state.editKeys[3] = { raw: [48, 233, 0, 0], label: "Volume +", group: "Media" };
-  state.editKeys[4] = { raw: [48, 234, 0, 0], label: "Volume -", group: "Media" };
+  state.editKeys[3] = { raw: [48, 234, 0, 0], label: "Volume -", group: "Media" };
+  state.editKeys[4] = { raw: [48, 233, 0, 0], label: "Volume +", group: "Media" };
   renderPage();
   toast("Tombol samping diset Volume +/− — klik Terapkan Semua");
 }

@@ -349,8 +349,14 @@ class Api:
             "dpi_color_names": hidmod.DPI_COLOR_NAMES,
             "triggers": [{"label": n, "value": list(v)}
                          for n, v in engine_mod.TRIGGER_CHOICES],
+            # Indeks mengikuti SLOT FIRMWARE (0-based):
+            #   0,1,2 = Kiri, Kanan, Tengah
+            #   3 (slot 4) = samping BELAKANG
+            #   4 (slot 5) = samping DEPAN
+            # (slot 5 = tombol paling depan — dibuktikan baca tombol dari
+            #  perangkat: slot 5 default = Maju/Forward.)
             "button_labels": ["Tombol Kiri", "Tombol Kanan", "Scroll (Tengah)",
-                              "Samping Atas (Depan)", "Samping Bawah (Belakang)"],
+                              "Samping Bawah (Belakang)", "Samping Atas (Depan)"],
             "hotkeys": {"record": "F9", "play": "F10"},
             "device": hidmod.DEVICE_SPECS,
             "dpi_presets": [{"value": p[0], "color": p[1], "name": p[2]}
