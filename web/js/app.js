@@ -318,7 +318,7 @@ function dpiType(i, el, isBig) {
 function dpiKey(ev, i, el, isBig) {
   if (ev.key === "Enter") { ev.preventDefault(); el.blur(); dpiType(i, el, isBig); }
 }
-function countStep(d) { state.editCount = Math.max(1, Math.min(6, state.editCount + d)); $("#cntVal").textContent = state.editCount; }
+function countStep(d) { state.editCount = Math.max(1, Math.min(6, state.editCount + d)); const e = $("#cntVal"); if (e) e.textContent = state.editCount; }
 
 /* -------------------------------------------------------------- REMAP page */
 function pageRemap() {
@@ -591,8 +591,8 @@ function pagePerformance() {
   </div>`;
 }
 function setRR(v) { state.editRR = v; renderPage(); }
-function krStep(d) { state.editKeyResp = Math.max(2, Math.min(20, state.editKeyResp + d)); $("#krVal").textContent = state.editKeyResp; }
-function slStep(d) { state.editSleep = Math.max(0, Math.min(60, state.editSleep + d)); $("#slVal").textContent = state.editSleep; }
+function krStep(d) { state.editKeyResp = Math.max(2, Math.min(20, state.editKeyResp + d)); const e = $("#krVal"); if (e) e.textContent = state.editKeyResp; }
+function slStep(d) { state.editSleep = Math.max(0, Math.min(60, state.editSleep + d)); const e = $("#slVal"); if (e) e.textContent = state.editSleep; }
 function factoryPerf() { state.editRR = 3; state.editLod = 1; state.editKeyResp = 8; state.editSleep = 10; state.editSensor = 0; state.editHigh = 0; renderPage(); toast("Standar pabrik dimuat"); }
 
 /* --------------------------------------------------------------- LAMPU page */
