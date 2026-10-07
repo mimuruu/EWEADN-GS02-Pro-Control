@@ -438,45 +438,8 @@ function chooseCat(it, el) {
 }
 function applyKeyPick(idx) {
   const pick = window._catPick;
-  // Fungsi DAYA berbahaya (bisa mematikan/menidurkan PC). Konfirmasi dulu
-  // lewat modal sendiri (window.confirm tidak andal di WebView2).
-  if (pick.group === "[Daya]") {
-    const isSleep = pick.label.toLowerCase().includes("tidur") ||
-      pick.label.toLowerCase().includes("sleep");
-    const el = $("#modal");
-    el.className = "overlay show";
-    el.innerHTML = `
-      <div class="modal" style="width:440px">
-        <div class="modal-head">
-          <div class="ci" style="width:30px;height:30px;border-radius:6px;display:grid;place-items:center;background:#c42b1c22;color:#e5484d">${icon("bolt")}</div>
-          <div class="h">Konfirmasi Fungsi Daya</div>
-          <span class="x" onclick="openKeyPicker(${idx})">${icon("x")}</span>
-        </div>
-        <div class="modal-body">
-          <div class="hint" style="border-color:#e5484d55">
-            ${icon("bolt")}
-            <div>Fungsi <strong>${esc(pick.label)}</strong> akan dipasang pada
-            <strong>Tombol ${idx + 1}</strong>.<br><br>
-            Menekan tombol itu akan langsung <strong>${isSleep ? "MENIDURKAN" : "MEMATIKAN"}</strong>
-            komputer — <strong>tanpa konfirmasi lagi</strong>. Pastikan kamu memang
-            ingin begitu.</div>
-          </div>
-        </div>
-        <div class="modal-foot">
-          <button class="btn ghost" onclick="openKeyPicker(${idx})">Batal</button>
-          <button class="btn danger" onclick="confirmPowerKey(${idx})">${icon("check")}Ya, Pasang</button>
-        </div>
-      </div>`;
-    return;
-  }
   state.editKeys[idx] = { raw: pick.raw.slice(), label: pick.label, group: pick.group };
   closeModal(); renderPage();
-}
-function confirmPowerKey(idx) {
-  const pick = window._catPick;
-  state.editKeys[idx] = { raw: pick.raw.slice(), label: pick.label, group: pick.group };
-  closeModal(); renderPage();
-  toast("Fungsi daya dipasang — klik Terapkan Semua untuk menyimpan", "err");
 }
 function closeModal() { $("#modal").className = "overlay"; $("#modal").innerHTML = ""; }
 
