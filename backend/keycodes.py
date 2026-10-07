@@ -38,6 +38,13 @@ KEYCODES = [
     ('[Sistem]', 'Kalkulator', 48, 146, 1, 0),
     ('[Sistem]', 'My Computer', 48, 148, 1, 0),
     ('[Sistem]', 'Email', 48, 138, 1, 0),
+    # Daya: dikirim langsung oleh mouse (HID Consumer Control, page 0x0C),
+    # jadi BERFUNGSI TANPA software. 0x30=Power, 0x32=Sleep, 0x81=System Power
+    # Down, 0x82=System Sleep.
+    ('[Daya]', 'Matikan / Power Off', 48, 48, 0, 0),
+    ('[Daya]', 'Tidur / Sleep', 48, 50, 0, 0),
+    ('[Daya]', 'System Power Down', 48, 129, 0, 0),
+    ('[Daya]', 'System Sleep', 48, 130, 0, 0),
     ('[Keyboard]', '-', 16, 0, 45, 0),
     ('[Keyboard]', '，', 16, 0, 54, 0),
     ('[Keyboard]', ';', 16, 0, 51, 0),
@@ -182,6 +189,6 @@ KEYCODES = [
 ]
 
 KEY_LABELS = ["%s  %s" % (k[0], k[1]) for k in KEYCODES]
-GROUP_ORDER = ["[Mouse]", "[Edit]", "[Media]", "[Sistem]",
+GROUP_ORDER = ["[Mouse]", "[Edit]", "[Media]", "[Sistem]", "[Daya]",
                "[Keyboard]", "[Shortcut]", "[Navigasi]", "[Windows]",
                "[Lainnya]", "[DPI]"]

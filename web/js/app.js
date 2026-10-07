@@ -196,7 +196,9 @@ function pageDpi() {
       <td>
         <div class="stepper">
           <button onclick="dpiStep(${i},-50)">−</button>
-          <span class="val" id="dpiv${i}">${v}</span>
+          <input class="val" id="dpiv${i}" type="number" inputmode="numeric"
+                 min="${c.dpi_min || 200}" max="${c.dpi_max || 24000}" step="50"
+                 value="${v}" onchange="dpiType(${i}, this)" onkeydown="dpiKey(event, ${i}, this)">
           <button onclick="dpiStep(${i},50)">+</button>
         </div>
       </td>
@@ -219,7 +221,11 @@ function pageDpi() {
       </div>
       <div class="card">
         <div class="card-head"><div class="ci">${icon("sliders")}</div><div class="ct"><div class="h">Atur Stage Aktif</div><div class="s">Stage ${state.editActive + 1} dari 6</div></div></div>
-        <div style="text-align:center;font-family:var(--mono);font-size:20px;font-weight:700;color:var(--accent)" id="dpiBig">${state.editDpi[state.editActive]} DPI</div>
+        <div style="display:flex;justify-content:center;margin-bottom:10px">
+          <input class="dpi-big-input" id="dpiBig" type="number" inputmode="numeric"
+                 min="${dmin}" max="${dmax}" step="50" value="${state.editDpi[state.editActive]}"
+                 onchange="dpiType(${state.editActive}, this, true)" onkeydown="dpiKey(event, ${state.editActive}, this, true)">
+        </div>
         <input type="range" class="slider" id="dpiSlider" min="${dmin}" max="${dmax}" step="50" value="${state.editDpi[state.editActive]}">
         <div class="flex" style="justify-content:space-between;font-size:11px;color:var(--muted);font-family:var(--mono)">
           <span>${dmin} DPI</span><span>${dmax} DPI</span>
@@ -275,9 +281,10 @@ function bindDpi() {
   s.addEventListener("input", e => {
     const v = parseInt(e.target.value, 10);
     state.editDpi[state.editActive] = v;
-    $("#dpiBig").textContent = v + " DPI";
+    const big = $("#dpiBig");
+    if (big) big.value = v;
     const el = $("#dpiv" + state.editActive);
-    if (el) el.textContent = v;
+    if (el) el.value = v;
   });
 }
 function pickStage(i) { state.editActive = i; renderPage(); }
@@ -286,7 +293,30 @@ function dpiStep(i, d) {
   const lo = c.dpi_min || 200, hi = c.dpi_max || 24000;
   state.editDpi[i] = Math.max(lo, Math.min(hi, state.editDpi[i] + d));
   if (i === state.editActive) { renderPage(); }
-  else { const el = $("#dpiv" + i); if (el) el.textContent = state.editDpi[i]; }
+  else { const el = $("#dpiv" + i); if (el) el.value = state.editDpi[i]; }
+}
+/* Nilai DPI DIKETIK langsung: validasi + clamp ke rentang sensor. */
+function dpiType(i, el, isBig) {
+  const c = state.constants;
+  const lo = c.dpi_min || 200, hi = c.dpi_max || 24000;
+  let v = parseInt(el.value, 10);
+  if (isNaN(v)) { el.value = state.editDpi[i]; return; }
+  v = Math.max(lo, Math.min(hi, v));
+  state.editDpi[i] = v;
+  el.value = v;
+  if (isBig) {
+    const row = $("#dpiv" + i);
+    if (row) row.value = v;
+    const s = $("#dpiSlider");
+    if (s) s.value = v;
+  } else {
+    const big = $("#dpiBig");
+    if (big && i === state.editActive) { big.value = v; const s = $("#dpiSlider"); if (s) s.value = v; }
+  }
+}
+/* Enter = konfirmasi nilai ketikan (biar tidak perlu klik keluar dulu). */
+function dpiKey(ev, i, el, isBig) {
+  if (ev.key === "Enter") { ev.preventDefault(); el.blur(); dpiType(i, el, isBig); }
 }
 function countStep(d) { state.editCount = Math.max(1, Math.min(6, state.editCount + d)); $("#cntVal").textContent = state.editCount; }
 
@@ -407,8 +437,46 @@ function chooseCat(it, el) {
   el.classList.add("sel");
 }
 function applyKeyPick(idx) {
-  state.editKeys[idx] = { raw: window._catPick.raw.slice(), label: window._catPick.label, group: window._catPick.group };
+  const pick = window._catPick;
+  // Fungsi DAYA berbahaya (bisa mematikan/menidurkan PC). Konfirmasi dulu
+  // lewat modal sendiri (window.confirm tidak andal di WebView2).
+  if (pick.group === "[Daya]") {
+    const isSleep = pick.label.toLowerCase().includes("tidur") ||
+      pick.label.toLowerCase().includes("sleep");
+    const el = $("#modal");
+    el.className = "overlay show";
+    el.innerHTML = `
+      <div class="modal" style="width:440px">
+        <div class="modal-head">
+          <div class="ci" style="width:30px;height:30px;border-radius:6px;display:grid;place-items:center;background:#c42b1c22;color:#e5484d">${icon("bolt")}</div>
+          <div class="h">Konfirmasi Fungsi Daya</div>
+          <span class="x" onclick="openKeyPicker(${idx})">${icon("x")}</span>
+        </div>
+        <div class="modal-body">
+          <div class="hint" style="border-color:#e5484d55">
+            ${icon("bolt")}
+            <div>Fungsi <strong>${esc(pick.label)}</strong> akan dipasang pada
+            <strong>Tombol ${idx + 1}</strong>.<br><br>
+            Menekan tombol itu akan langsung <strong>${isSleep ? "MENIDURKAN" : "MEMATIKAN"}</strong>
+            komputer — <strong>tanpa konfirmasi lagi</strong>. Pastikan kamu memang
+            ingin begitu.</div>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn ghost" onclick="openKeyPicker(${idx})">Batal</button>
+          <button class="btn danger" onclick="confirmPowerKey(${idx})">${icon("check")}Ya, Pasang</button>
+        </div>
+      </div>`;
+    return;
+  }
+  state.editKeys[idx] = { raw: pick.raw.slice(), label: pick.label, group: pick.group };
   closeModal(); renderPage();
+}
+function confirmPowerKey(idx) {
+  const pick = window._catPick;
+  state.editKeys[idx] = { raw: pick.raw.slice(), label: pick.label, group: pick.group };
+  closeModal(); renderPage();
+  toast("Fungsi daya dipasang — klik Terapkan Semua untuk menyimpan", "err");
 }
 function closeModal() { $("#modal").className = "overlay"; $("#modal").innerHTML = ""; }
 
