@@ -215,6 +215,26 @@ class GS02:
             "wakeup": (t[53] >> 4) & 15, "move_light": t[53] & 15,
         }
 
+    def is_alive(self):
+        """True bila MOUSE benar-benar aktif (bukan sekadar dongle terpasang).
+
+        Pada mode 2.4G, dongle tetap ada walau mouse dimatikan, jadi 'device
+        ada' BUKAN berarti mouse hidup. Saat mouse mati, dongle membalas
+        perintah config dengan data KOSONG (semua nol) -> aplikasi dulu
+        menganggapnya 'terhubung' dengan setelan default. Kita deteksi itu:
+        timeout ATAU payload kosong = mouse mati.
+        """
+        try:
+            t = self._send([14, 165, 11, 46, 1, 1, 1, 0, 0], expect=14,
+                           wait=30, delay=0.02)
+        except Exception:
+            return False
+        if not t or t[0] != 14:
+            return False
+        # Payload setelah header (byte 8..53) semuanya nol = tidak ada data
+        # nyata dari mouse (mouse mati / di luar jangkauan).
+        return any(b != 0 for b in t[8:54])
+
     def write_config(self, cfg):
         t = [0] * 64
         t[0] = REPORT_ID

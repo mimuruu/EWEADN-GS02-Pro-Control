@@ -134,6 +134,8 @@ class Api:
         self._events = []
         self._evlock = threading.Lock()
         self._fk_clicks = 0
+        self._connected = False
+        self._last_ping = 0.0
         self._load_settings()
 
         self._engine = engine_mod.InputEngine(
@@ -256,7 +258,12 @@ class Api:
         self._emit("play-started", {"count": len(evs)})
 
     def poll_events(self):
-        """Dipanggil UI berkala; mengembalikan event engine terbaru."""
+        """Dipanggil UI berkala; mengembalikan event engine terbaru.
+
+        Sekaligus mengecek koneksi mouse secara BERKALA (di-throttle ~2 detik)
+        supaya status "Terhubung/Terputus" di UI ikut berubah saat mouse
+        dimatikan/dinyalakan — tanpa perlu polling HID berat tiap 1 detik.
+        """
         with self._evlock:
             evs = self._events
             self._events = []
@@ -267,7 +274,43 @@ class Api:
             out["events_snapshot"] = self._fmt_events(snap)
             out["count"] = len(snap)
             out["duration"] = self._duration(snap)
+        # Cek status koneksi berkala (throttle 2 detik).
+        now = time.time()
+        if now - getattr(self, "_last_ping", 0.0) >= 2.0:
+            self._last_ping = now
+            out["conn"] = self._ping()
         return out
+
+    def _ping(self):
+        """Cek cepat apakah mouse masih terhubung (tanpa mengubah state).
+
+        Kirim perintah baca-config; kalau tidak ada balasan -> terputus.
+        Mengembalikan {connected, mode} seperlunya.
+        """
+        try:
+            with self._hid_lock:
+                if not self._mouse.connected:
+                    try:
+                        self._mouse.open()
+                    except Exception:
+                        # Device belum ada di sistem (mis. dongle baru dicolok,
+                        # Windows belum selesai enumerate) -> coba lagi nanti.
+                        self._connected = False
+                        return {"connected": False}
+                ok = self._mouse.is_alive()
+                if not ok:
+                    self._mouse.close()
+                    self._connected = False
+                    return {"connected": False}
+                self._connected = True
+                return {"connected": True, "mode": self._mouse.mode()}
+        except Exception:
+            try:
+                self._mouse.close()
+            except Exception:
+                pass
+            self._connected = False
+            return {"connected": False}
 
     def ui_heartbeat(self, info):
         """UI melapor bahwa render pertama berhasil (bukti bukan layar abu-abu)."""

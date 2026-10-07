@@ -514,6 +514,12 @@ function openAbout() {
           <div class="sg"><div class="l">Lisensi</div><div class="v">MIT</div></div>
           <div class="sg"><div class="l">Repository</div><div class="v mono" style="font-size:11px">github.com/mimuruu/EWEADN-GS02-Pro-Control</div></div>
           <div class="sg"><div class="l">Teknologi</div><div class="v">Python &middot; pywebview &middot; hidapi</div></div>
+          <div class="sg"><div class="l">Discord</div><div class="v mono" style="font-size:11px">mimuruu &middot; 832007262314692659</div></div>
+        </div>
+
+        <div class="hint" style="margin-top:12px">
+          ${icon("message")}
+          <div>Ada bug atau saran? Hubungi Discord <strong>mimuruu</strong> di atas.</div>
         </div>
 
         <div class="divider"></div>
@@ -524,11 +530,19 @@ function openAbout() {
         </div>
       </div>
       <div class="modal-foot">
-        <button class="btn ghost" onclick="openAboutLink()">${icon("arrowRight")}Buka di GitHub</button>
+        <button class="btn ghost" onclick="openDiscord()">${icon("discord")}Discord</button>
+        <button class="btn ghost" onclick="openAboutLink()">${icon("arrowRight")}GitHub</button>
         <button class="btn ghost" onclick="checkUpdate(true)">${icon("refresh")}Cek Update</button>
         <button class="btn primary" onclick="closeModal()">${icon("check")}Tutup</button>
       </div>
     </div>`;
+}
+
+const DISCORD_ID = "832007262314692659";
+const DISCORD_URL = "https://discord.com/users/" + DISCORD_ID;
+
+function openDiscord() {
+  try { window.pywebview.api.open_url(DISCORD_URL); } catch (e) { }
 }
 
 function openAboutLink() {
@@ -981,6 +995,21 @@ async function pollEngine() {
       _pollFast = state.fkEdit.enabled && state.firekey.enabled;
     }
     if (typeof r.fk_clicks === "number") state.fkClicks = r.fk_clicks;
+    // Status koneksi (auto-detect dari backend, tanpa perlu refresh manual).
+    if (r.conn && typeof r.conn.connected === "boolean") {
+      const nowConn = r.conn.connected;
+      if (nowConn !== state.connected) {
+        state.connected = nowConn;
+        if (r.conn.mode) state.mode = r.conn.mode;
+        renderTopbar();
+        renderBottombar();
+        setStatus(nowConn ? "Terhubung — siap"
+          : "Mouse terputus — nyalakan mouse / sambungkan dongle",
+          nowConn ? "" : "err");
+        // Kalau baru tersambung lagi, muat ulang state dari perangkat.
+        if (nowConn) { try { applyState(await API().connect()); renderPage(); } catch (e) { } }
+      }
+    }
   } catch (e) { /* coba lagi nanti */ }
   finally { _pollBusy = false; }
 }
